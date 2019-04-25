@@ -140,12 +140,6 @@ class Game extends React.Component {
         return ((x-1) + (y-1)*8)
     }
 
-    calcXY(pos) {
-        x = (pos % 8) + 1
-        y = int(pos / 8) + 1
-        return x, y
-    }
-
     handleClick(i) {
         var url = 'put_stone'
         addHeader(request.post(url))

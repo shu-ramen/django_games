@@ -27,12 +27,10 @@ class Othello(object):
 
         count = 0
         for v in Othello.VEC:
-            tx, ty = (x, y)
+            tx, ty = (x+v[0], y+v[1])
             temp_count = 0
             history = []
             while (tx > 0 and tx < 8 and ty > 0 and ty < 8):
-                tx = tx + v[0]
-                ty = ty + v[1]
                 if squares[tx][ty] == Othello.EMPTY:
                     break
                 elif squares[tx][ty] == player:
@@ -44,6 +42,8 @@ class Othello(object):
                 else:
                     temp_count = temp_count + 1
                     history.append([tx, ty])
+                tx = tx + v[0]
+                ty = ty + v[1]
         
         if count > 0:
             squares[x][y] = player
