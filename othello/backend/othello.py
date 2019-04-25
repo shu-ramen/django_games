@@ -30,7 +30,7 @@ class Othello(object):
             tx, ty = (x+v[0], y+v[1])
             temp_count = 0
             history = []
-            while (tx > 0 and tx < 8 and ty > 0 and ty < 8):
+            while (tx >= 0 and tx < 8 and ty >= 0 and ty < 8):
                 if squares[tx][ty] == Othello.EMPTY:
                     break
                 elif squares[tx][ty] == player:
