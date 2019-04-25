@@ -5,7 +5,7 @@ from django.template import loader
 
 import json
 
-from othello.backend import othello
+from othello.backend.othello import Othello
 
 # Create your views here.
 def index(request):
@@ -18,15 +18,15 @@ def putStone(request):
         body = request.body
         data = json.loads(body)
         player = data['player']
-        map = data['map']
+        squares = data['squares']
         put_pos = data['put_pos']
 
-        new_map = othello.put(player, map, put_pos)
+        new_squares = Othello.put(player, squares, put_pos)
 
-        if (new_map):
+        if (new_squares is not None):
             response = {
                 "success": True,
-                "map": new_map,
+                "squares": new_squares,
             }
         else:
             response = {

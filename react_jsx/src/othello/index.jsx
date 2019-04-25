@@ -11,7 +11,7 @@ function addHeader(request) {
 }
 
 function Square(props) {
-    var stone = ((props.value == empty) ? "" : ((props.value == black) ? "??" : "??"));
+    var stone = ((props.value == empty) ? "" : ((props.value == black) ? "O" : "X"));
     return (
         <button className="square" onClick={() => props.onClick()}>
             {stone}
@@ -121,15 +121,15 @@ class Game extends React.Component {
     constructor() {
         super();
         
-        // Create map
-        var map = Array(64).fill(empty);
-        map[this.calcPos(4, 4)] = black;
-        map[this.calcPos(5, 4)] = white;
-        map[this.calcPos(4, 5)] = white;
-        map[this.calcPos(5, 5)] = black;
+        // Create squares
+        var squares = Array(64).fill(empty);
+        squares[this.calcPos(4, 4)] = black;
+        squares[this.calcPos(5, 4)] = white;
+        squares[this.calcPos(4, 5)] = white;
+        squares[this.calcPos(5, 5)] = black;
 
         this.state = {
-            map: map,
+            squares: squares,
             stepNumber: 0,
             player: black,
         };
@@ -151,17 +151,19 @@ class Game extends React.Component {
         addHeader(request.post(url))
             .send({
                 player: this.state.player,
-                map: this.state.map,
+                squares: this.state.squares,
                 put_pos: i,
             })
             .end(function (err, res) {
                 if (err) {
                     alert(res.text);
                 }
+
+                console.dir(res);
                 
                 if (res.body['success']) {
                     this.setState({
-                        map: res.body['map'],
+                        squares: res.body['squares'],
                         stepNumber: (this.state.stepNumber + 1),
                         player: (1 - this.state.player),
                     });
@@ -173,13 +175,13 @@ class Game extends React.Component {
     }
     
     render() {
-        var status = 'Next plyer is ' + (this.state.player == black ? "??" : "??");
+        var status = 'Next plyer is ' + (this.state.player == black ? "O" : "X");
 
         return (
             <div className="game">
                 <div>
                 <Board
-                    squares={this.state.map}
+                    squares={this.state.squares}
                     onClick={(i) => this.handleClick(i)}
                 />
                 </div>
