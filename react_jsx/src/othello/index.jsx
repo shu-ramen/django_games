@@ -11,7 +11,7 @@ function addHeader(request) {
 }
 
 function Square(props) {
-    var stone = ((props.value == empty) ? "" : ((props.value == black) ? "🔵" : "🔴"));
+    var stone = ((props.value == empty) ? "" : ((props.value == black) ? "??" : "??"));
     return (
         <button className="square" onClick={() => props.onClick()}>
             {stone}
@@ -173,7 +173,7 @@ class Game extends React.Component {
     }
     
     render() {
-        var status = 'Next plyer is ' + (this.state.player == black ? "🔵" : "🔴");
+        var status = 'Next plyer is ' + (this.state.player == black ? "??" : "??");
 
         return (
             <div className="game">
