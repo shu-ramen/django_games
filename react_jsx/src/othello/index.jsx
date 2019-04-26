@@ -2,6 +2,22 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import request from 'superagent'
 
+function getStoneTag(stone) {
+    if (stone == black) {
+        return (
+            <img src="/static/images/dog.png" width="30" height="30"></img>
+        )
+    }
+    else if (stone == white) {
+        return (
+            <img src="/static/images/cat.png" width="30" height="30"></img>
+        )
+    }
+    else {
+        return ""
+    }
+}
+
 function addHeader(request) {
     var csrfToken = document.getElementsByName("csrfmiddlewaretoken")[0].value;
 
@@ -11,10 +27,10 @@ function addHeader(request) {
 }
 
 function Square(props) {
-    var stone = ((props.value == empty) ? "" : ((props.value == black) ? "O" : "X"));
+    var stoneTag = getStoneTag(props.value);
     return (
         <button className="square" onClick={() => props.onClick()}>
-            {stone}
+            {stoneTag}
         </button>
     );
 }
@@ -152,8 +168,6 @@ class Game extends React.Component {
                 if (err) {
                     alert(res.text);
                 }
-
-                console.dir(res);
                 
                 if (res.body['success']) {
                     this.setState({
@@ -169,7 +183,7 @@ class Game extends React.Component {
     }
     
     render() {
-        var status = 'Next plyer is ' + (this.state.player == black ? "O" : "X");
+        var nextPlayer = getStoneTag(this.state.player);
 
         return (
             <div className="game">
@@ -181,7 +195,9 @@ class Game extends React.Component {
                 </div>
                 <div>
                     <div className="game-info">
-                        <div>{status}</div>
+                        <div>
+                            Next Player : {nextPlayer}
+                        </div>
                     </div>
                 </div>
             </div>
