@@ -5,7 +5,7 @@ from django.template import loader
 
 import json
 
-from othello.backend.othello import Othello
+from othello.backend.othello import OthelloSystem, OthelloAI
 
 # Create your views here.
 def index(request):
@@ -21,12 +21,36 @@ def putStone(request):
         squares = data['squares']
         put_pos = data['put_pos']
 
-        new_squares = Othello.put(player, squares, put_pos)
+        new_squares, history = OthelloSystem.put(player, squares, put_pos)
 
         if (new_squares is not None):
             response = {
                 "success": True,
                 "squares": new_squares,
+                "history": history,
+            }
+        else:
+            response = {
+                "success": False,
+            }
+        return JsonResponse(response)
+    else:
+        return Http404
+
+def cpu0(request):
+    if request.method == 'POST':
+        body = request.body
+        data = json.loads(body)
+        player = data['player']
+        squares = data['squares']
+
+        new_squares, history = OthelloAI.think(OthelloAI.METHOD_RUNDOM, player, squares)
+
+        if (new_squares is not None):
+            response = {
+                "success": True,
+                "squares": new_squares,
+                "history": history,
             }
         else:
             response = {

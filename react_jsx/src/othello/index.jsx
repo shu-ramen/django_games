@@ -19,7 +19,7 @@ function getStoneTag(stone) {
 }
 
 function addHeader(request) {
-    var csrfToken = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+    let csrfToken = document.getElementsByName("csrfmiddlewaretoken")[0].value;
 
     return request
         .set('X-CSRFToken', csrfToken)
@@ -27,7 +27,7 @@ function addHeader(request) {
 }
 
 function Square(props) {
-    var stoneTag = getStoneTag(props.value);
+    let stoneTag = getStoneTag(props.value);
     return (
         <button className="square" onClick={() => props.onClick()}>
             {stoneTag}
@@ -138,7 +138,7 @@ class Game extends React.Component {
         super();
         
         // Create squares
-        var squares = Array(64).fill(empty);
+        let squares = Array(64).fill(empty);
         squares[this.calcPos(4, 4)] = black;
         squares[this.calcPos(5, 4)] = white;
         squares[this.calcPos(4, 5)] = white;
@@ -156,8 +156,44 @@ class Game extends React.Component {
         return ((x-1) + (y-1)*8)
     }
 
+    countStone(stone) {
+        let count = 0;
+        for (var idx in this.state.squares) {
+            if (this.state.squares[idx] == stone) {
+                count = count + 1;
+            }
+        }
+        return count;
+    }
+
+    tick(player, squares, history, idx, me) {
+        let pos = history[idx];
+        squares[pos] = player;
+        idx = idx + 1;
+        me.setState({
+            squares: squares,
+        });
+        let timer = setTimeout(me.tick, 200, player, squares, history, idx, me);
+        if (idx >= history.length) {
+            let nextPlayer = 1 - player;
+            me.setState({
+                stepNumber: me.state.stepNumber + 1,
+                player: nextPlayer,
+            });
+            if (nextPlayer == white) {
+                setTimeout(me.cpu, 1000, nextPlayer, squares, me, 'cpu0');
+            }
+            clearTimeout(timer);
+        }
+    }
+
     handleClick(i) {
-        var url = 'put_stone'
+        if (this.state.player == white) {
+            alert("It is not your turn!");
+        }
+
+        const url = 'put_stone';
+
         addHeader(request.post(url))
             .send({
                 player: this.state.player,
@@ -170,20 +206,42 @@ class Game extends React.Component {
                 }
                 
                 if (res.body['success']) {
-                    this.setState({
-                        squares: res.body['squares'],
-                        stepNumber: (this.state.stepNumber + 1),
-                        player: (1 - this.state.player),
-                    });
+                    console.dir(res.body['history']);
+
+                    this.tick(this.state.player, this.state.squares, res.body['history'], 0, this);
                 }
                 else {
                     alert('You cannot put there!!')
                 }
             }.bind(this));
     }
+
+    cpu(player, squares, me, url) {
+        addHeader(request.post(url))
+        .send({
+            player: player,
+            squares: squares,
+        })
+        .end(function (err, res) {
+            if (err) {
+                alert(res.text);
+            }
+            
+            if (res.body['success']) {
+                console.dir(res.body['history']);
+
+                me.tick(player, squares, res.body['history'], 0, me);
+            }
+            else {
+                alert('You cannot put there!!')
+            }
+        }.bind(this));
+    }
     
     render() {
-        var nextPlayer = getStoneTag(this.state.player);
+        let nextPlayer = getStoneTag(this.state.player);
+        let blackCount = this.countStone(black);
+        let whiteCount = this.countStone(white);
 
         return (
             <div className="game">
@@ -196,7 +254,13 @@ class Game extends React.Component {
                 <div>
                     <div className="game-info">
                         <div>
-                            Next Player : {nextPlayer}
+                            <h1> Next Player :  {nextPlayer} </h1>
+                        </div>
+                        <div>
+                            <h1> {getStoneTag(black)} : {blackCount} </h1>
+                        </div>
+                        <div>
+                            <h1> {getStoneTag(white)} : {whiteCount} </h1>
                         </div>
                     </div>
                 </div>
