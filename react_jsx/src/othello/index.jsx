@@ -132,11 +132,11 @@ class Board extends React.Component {
 const empty = -1;
 const black = 0;
 const white = 1;
+const cpuUrl = 'cpu1';
 
 class Game extends React.Component {
     constructor() {
         super();
-        
         // Create squares
         let squares = Array(64).fill(empty);
         squares[this.calcPos(4, 4)] = black;
@@ -181,7 +181,7 @@ class Game extends React.Component {
                 player: nextPlayer,
             });
             if (nextPlayer == white) {
-                setTimeout(me.cpu, 1000, nextPlayer, squares, me, 'cpu0');
+                setTimeout(me.cpu, 1000, nextPlayer, squares, me);
             }
             clearTimeout(timer);
         }
@@ -215,8 +215,8 @@ class Game extends React.Component {
             }.bind(this));
     }
 
-    cpu(player, squares, me, url) {
-        addHeader(request.post(url))
+    cpu(player, squares, me) {
+        addHeader(request.post(cpuUrl))
         .send({
             player: player,
             squares: squares,
@@ -231,13 +231,29 @@ class Game extends React.Component {
                 me.tick(player, squares, res.body['history'], 0, me);
             }
             else {
-                alert('You cannot put there!!')
+                me.cpuPass();
             }
         }.bind(this));
     }
+
+    pass() {
+        if (this.state.player == black) {
+            this.setState({
+                player : white,
+            });
+            this.cpu(white, this.state.squares, this);
+        }
+    }
+
+    cpuPass() {
+        alert('CPU passed its turn.');
+        this.setState({
+            player : black,
+        });
+    }
     
     render() {
-        let nextPlayer = getStoneTag(this.state.player);
+        let nextPlayerTag = getStoneTag(this.state.player);
         let blackCount = this.countStone(black);
         let whiteCount = this.countStone(white);
 
@@ -252,13 +268,16 @@ class Game extends React.Component {
                 <div>
                     <div className="game-info">
                         <div>
-                            <h1> Next Player :  {nextPlayer} </h1>
+                            <h1> Next Player :  {nextPlayerTag} </h1>
                         </div>
                         <div>
                             <h1> {getStoneTag(black)} : {blackCount} </h1>
                         </div>
                         <div>
                             <h1> {getStoneTag(white)} : {whiteCount} </h1>
+                        </div>
+                        <div>
+                            <button onClick={() => this.pass()}>PASS</button>
                         </div>
                     </div>
                 </div>

@@ -1,5 +1,4 @@
 import numpy as np
-import random
 
 class OthelloSystem(object):
     EMPTY = -1
@@ -65,56 +64,157 @@ class OthelloSystem(object):
 class BitBoard(object):
     VEC = [-9, -8, -7, -1, 1, 7, 8, 9]
 
-    def __init__(self, squares):
-        self._blackBits, self._whiteBits = BitBoard.squaresToBits(squares)
-
-    @property
-    def blackBits(self):
-        return self._blackBits
-    
-    @property
-    def whiteBits(self):
-        return self._whiteBits
-
     @staticmethod
-    def squaresToBits(squares):
-        blackBits = 0x0000000000000000
-        whiteBits = 0x0000000000000000
+    def squaresToBoard(squares):
+        blackBoard = 0x0000000000000000
+        whiteBoard = 0x0000000000000000
         mask = 0x8000000000000000
         for i in range(64):
-            mask = mask >> 1
             if squares[i] == OthelloSystem.BLACK:
-                blackBits = blackBits + mask
+                blackBoard = blackBoard + mask
             if squares[i] == OthelloSystem.WHITE:
-                whiteBits = whiteBits + mask
-        return blackBits, whiteBits
-
-
-class OthelloAI(object):
-    METHOD_RANDOM = 0
-    METHOD_EVALFUNC = 1
-
+                whiteBoard = whiteBoard + mask
+            mask = mask >> 1
+        return blackBoard, whiteBoard
+    
     @staticmethod
-    def think(method, player, squares):
-        if (method == OthelloAI.METHOD_RANDOM):
-            return OthelloAI.random_put(squares, player)
-        elif (method == OthelloAI.METHOD_EVALFUNC):
-            return OthelloAI.eval_func(squares, player)
+    def countBoard(board):
+        count = 0
+        mask = 0x8000000000000000
+        for i in range(64):
+            if (mask & board):
+                count = count + 1
+            mask >> 1
+        return count
+    
+    @staticmethod
+    def boardToSquares(blackBoard, whiteBoard):
+        squares =[]
+        mask = 0x8000000000000000
+        for i in range(64):
+            if blackBoard & mask:
+                squares.append(OthelloSystem.BLACK)
+            elif whiteBoard & mask:
+                squares.append(OthelloSystem.WHITE)
+            else:
+                squares.append(OthelloSystem.EMPTY)
+            mask = mask >> 1
+        return squares
+    
+    # 合法手を作成する関数
+    @staticmethod
+    def makeLegalBoard(myBoard, enemyBoard):
+        boardMask           =             0xffffffffffffffff      # 盤面を8x8に収めるマスク
+        temp                =             0x0000000000000000      # 隣に相手の色があるかを一時保存
+        legalBoard          =             0x0000000000000000      # 合法手ボード
+        horizontalWatchMask = enemyBoard & 0x7e7e7e7e7e7e7e7e     # 敵コマを考慮した左右端の番人のマスク（左右の走査に使う）
+        verticalWatchMask   = enemyBoard & 0x00ffffffffffff00     # 敵コマを考慮した上下端の番人のマスク（上下の走査に使う）
+        allSideWatchMask    = enemyBoard & 0x007e7e7e7e7e7e00     # 敵コマを考慮した全辺の番人のマスク（斜めの走査に使う）
+        blankBoard          = ~(myBoard | enemyBoard) & boardMask # 空白を示すボード（空きは1）
+        
+        # 左上
+        temp = allSideWatchMask & (myBoard << 9)
+        for i in range(5):
+            temp |= allSideWatchMask & (temp << 9)
+        legalBoard |= blankBoard & (temp << 9)
+
+        # 上
+        temp = verticalWatchMask & (myBoard << 8)
+        for i in range(5):
+            temp |= verticalWatchMask & (temp << 8)
+        legalBoard |= blankBoard & (temp << 8)
+
+        # 右上
+        temp = allSideWatchMask & (myBoard << 7)
+        for i in range(5):
+            temp |= allSideWatchMask & (temp << 7)
+        legalBoard |= blankBoard & (temp << 7)
+
+        # 左
+        temp = horizontalWatchMask & (myBoard << 1)
+        for i in range(5):
+            temp |= horizontalWatchMask & (temp << 1)
+        legalBoard |= blankBoard & (temp << 1)
+
+        # 右
+        temp = horizontalWatchMask & (myBoard >> 1)
+        for i in range(5):
+            temp |= horizontalWatchMask & (temp >> 1)
+        legalBoard |= blankBoard & (temp >> 1)
+
+        # 左下
+        temp = allSideWatchMask & (myBoard >> 7)
+        for i in range(5):
+            temp |= allSideWatchMask & (temp >> 7)
+        legalBoard |= blankBoard & (temp >> 7)
+
+        # 下
+        temp = verticalWatchMask & (myBoard >> 8)
+        for i in range(5):
+            temp |= verticalWatchMask & (temp >> 8)
+        legalBoard |= blankBoard & (temp >> 8)
+
+        # 右下
+        temp = allSideWatchMask & (myBoard >> 9)
+        for i in range(5):
+            temp |= allSideWatchMask & (temp >> 9)
+        legalBoard |= blankBoard & (temp >> 9)
+
+        return legalBoard
+
+    # 反転させる関数
+    # putPosは置く場所1ビット分だけ1になっている64ビット
+    @staticmethod
+    def reverse(myBoard, enemyBoard, putPos):
+        reverseBoard = 0x0000000000000000
+        for vec in BitBoard.VEC:
+            tempBoard = 0x0000000000000000
+            mask = transfer(putPos, vec) # posからvec方向に進む
+            while ((mask != 0) and ((mask & enemyBoard) != 0)):
+                # 範囲内にあり，捜査線上に敵コマが存在する限り繰り返す
+                tempBoard |= mask
+                mask = transfer(mask, vec) # どんどんvec方向に進む
+            if ((mask & myBoard) != 0):
+                # 進んだ先に自コマがあればひっくり返す
+                reverseBoard |= tempBoard
+        myBoard    ^= putPos | reverseBoard # 置いた駒と反転したコマの位置でXOR
+        enemyBoard ^= reverseBoard          # 反転したコマの位置でXOR
+        return myBoard, enemyBoard, reverseBoard
+    
+    # vec方向にposを移動させる関数
+    def transfer(putPos, vec):
+        if (vec == -9): # 左上
+            return (putPos << 9) & 0xfefefefefefefe00
+        if (vec == -8): # 上
+            return (putPos << 8) & 0xffffffffffffff00
+        if (vec == -7): # 右上
+            return (putPos << 7) & 0x7f7f7f7f7f7f7f00
+        if (vec == -1): # 左
+            return (putPos << 1) & 0xfefefefefefefefe
+        if (vec == 1): # 右
+            return (putPos >> 1) & 0x7f7f7f7f7f7f7f7f
+        if (vec == 7): # 左下
+            return (putPos >> 7) & 0x00fefefefefefefe
+        if (vec == 8): # 下
+            return (putPos >> 8) & 0x00ffffffffffffff
+        if (vec == 9): # 右下
+            return (putPos >> 9) & 0x007f7f7f7f7f7f7f
+        return 0x0000000000000000
+    
+    @staticmethod
+    def canPut(myBoard, enemyBoard):
+        myLegalBoard = BitBoard.makeLegalBoard(myBoard, enemyBoard)
+        if myLegalBoard != 0:
+            return True
         else:
-            return None, None
-    
+            return False
+
     @staticmethod
-    def random_put(squares, player):
-        new_squares = None
-        history = None
-        while (new_squares is None and history is None):
-            idx = random.randrange(64)
-            new_squares, history = OthelloSystem.put(player, squares, idx)
-        return new_squares, history
-    
-    @staticmethod
-    def eval_func(squares, player):
-        bitBoard = BitBoard(squares)
-        print(format(bitBoard.blackBits, "b").zfill(64))
-        print(format(bitBoard.whiteBits, "b").zfill(64))
-        return None, None
+    def isEnd(squares):
+        blackBoard, whiteBoard = BitBoard.squaresToBoard(squares)
+        blackLegalBoard = BitBoard.makeLegalBoard(blackBoard, whiteBoard)
+        whiteLegalBoard = BitBoard.makeLegalBoard(whiteBoard, blackBits)
+        if blankBoard == 0 and whiteLegalBoard == 0:
+            return True
+        else:
+            return False

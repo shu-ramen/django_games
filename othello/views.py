@@ -5,7 +5,8 @@ from django.template import loader
 
 import json
 
-from othello.backend.othello import OthelloSystem, OthelloAI
+from othello.backend.othello import OthelloSystem
+from othello.backend.othelloAI import RandomAI, SimpleEvalAI
 
 # Create your views here.
 def index(request):
@@ -44,7 +45,9 @@ def cpu0(request):
         player = data['player']
         squares = data['squares']
 
-        new_squares, history = OthelloAI.think(OthelloAI.METHOD_RANDOM, player, squares)
+
+        AI = RandomAI(player, squares)
+        new_squares, history = AI.think()
 
         if (new_squares is not None):
             response = {
@@ -67,7 +70,8 @@ def cpu1(request):
         player = data['player']
         squares = data['squares']
 
-        new_squares, history = OthelloAI.think(OthelloAI.METHOD_EVALFUNC, player, squares)
+        AI = SimpleEvalAI(player, squares)
+        new_squares, history = AI.think()
 
         if (new_squares is not None):
             response = {
