@@ -6,7 +6,7 @@ from django.template import loader
 import json
 
 from othello.backend.othello import OthelloSystem
-from othello.backend.othelloAI import RandomAI, SimpleEvalAI
+from othello.backend.othelloAI import RandomAI, SimpleEvalAI, DeepEvalAI
 
 # Create your views here.
 def index(request):
@@ -29,6 +29,7 @@ def putStone(request):
                 "success": True,
                 "squares": new_squares,
                 "history": history,
+                "isEnd": OthelloSystem.isEnd(new_squares),
             }
         else:
             response = {
@@ -54,10 +55,12 @@ def cpu0(request):
                 "success": True,
                 "squares": new_squares,
                 "history": history,
+                "isEnd": OthelloSystem.isEnd(new_squares),
             }
         else:
             response = {
                 "success": False,
+                "isEnd": OthelloSystem.isEnd(squares),
             }
         return JsonResponse(response)
     else:
@@ -78,6 +81,32 @@ def cpu1(request):
                 "success": True,
                 "squares": new_squares,
                 "history": history,
+                "isEnd": OthelloSystem.isEnd(new_squares),
+            }
+        else:
+            response = {
+                "success": False,
+            }
+        return JsonResponse(response)
+    else:
+        return Http404
+        
+def cpu2(request):
+    if request.method == 'POST':
+        body = request.body
+        data = json.loads(body)
+        player = data['player']
+        squares = data['squares']
+
+        AI = DeepEvalAI(player, squares)
+        new_squares, history = AI.think()
+
+        if (new_squares is not None):
+            response = {
+                "success": True,
+                "squares": new_squares,
+                "history": history,
+                "isEnd": OthelloSystem.isEnd(new_squares),
             }
         else:
             response = {

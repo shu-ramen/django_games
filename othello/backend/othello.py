@@ -12,13 +12,13 @@ class OthelloSystem(object):
     ]
 
     @staticmethod
-    def put(player, squares, put_pos):
-        if (squares[put_pos] != OthelloSystem.EMPTY):
+    def put(player, squares, putPos):
+        if (squares[putPos] != OthelloSystem.EMPTY):
             return None, None
         
         # マップを２次元配列に
         squares = np.reshape(squares, (8, 8)).T
-        x, y = OthelloSystem.calcXY(put_pos)
+        x, y = OthelloSystem.calcXY(putPos)
 
         count = 0
         history = [OthelloSystem.calcPos(x, y)]
@@ -51,6 +51,16 @@ class OthelloSystem(object):
             return None, None
 
     @staticmethod
+    def isEnd(squares):
+        blackBoard, whiteBoard = BitBoard.squaresToBoard(squares)
+        blackLegalBoard = BitBoard.makeLegalBoard(blackBoard, whiteBoard)
+        whiteLegalBoard = BitBoard.makeLegalBoard(whiteBoard, blackBoard)
+        if blackLegalBoard == 0 and whiteLegalBoard == 0:
+            return True
+        else:
+            return False
+
+    @staticmethod
     def calcXY(pos):
         x = pos % 8
         y = int(pos/8)
@@ -68,7 +78,7 @@ class BitBoard(object):
     def squaresToBoard(squares):
         blackBoard = 0x0000000000000000
         whiteBoard = 0x0000000000000000
-        mask = 0x8000000000000000
+        mask       = 0x8000000000000000
         for i in range(64):
             if squares[i] == OthelloSystem.BLACK:
                 blackBoard = blackBoard + mask
@@ -82,10 +92,20 @@ class BitBoard(object):
         count = 0
         mask = 0x8000000000000000
         for i in range(64):
-            if (mask & board):
+            if mask & board:
                 count = count + 1
-            mask >> 1
+            mask = mask >> 1
         return count
+
+    @staticmethod
+    def getIndices(board):
+        indices = []
+        mask = 0x8000000000000000
+        for i in range(64):
+            if mask & board:
+                indices.append(i)
+            mask = mask >> 1
+        return indices
     
     @staticmethod
     def boardToSquares(blackBoard, whiteBoard):
@@ -104,19 +124,19 @@ class BitBoard(object):
     # 合法手を作成する関数
     @staticmethod
     def makeLegalBoard(myBoard, enemyBoard):
-        boardMask           =             0xffffffffffffffff      # 盤面を8x8に収めるマスク
-        temp                =             0x0000000000000000      # 隣に相手の色があるかを一時保存
-        legalBoard          =             0x0000000000000000      # 合法手ボード
+        boardMask           =              0xffffffffffffffff     # 盤面を8x8に収めるマスク
+        temp                =              0x0000000000000000     # 隣に相手の色があるかを一時保存
+        legalBoard          =              0x0000000000000000     # 合法手ボード
         horizontalWatchMask = enemyBoard & 0x7e7e7e7e7e7e7e7e     # 敵コマを考慮した左右端の番人のマスク（左右の走査に使う）
         verticalWatchMask   = enemyBoard & 0x00ffffffffffff00     # 敵コマを考慮した上下端の番人のマスク（上下の走査に使う）
-        allSideWatchMask    = enemyBoard & 0x007e7e7e7e7e7e00     # 敵コマを考慮した全辺の番人のマスク（斜めの走査に使う）
-        blankBoard          = ~(myBoard | enemyBoard) & boardMask # 空白を示すボード（空きは1）
-        
-        # 左上
-        temp = allSideWatchMask & (myBoard << 9)
-        for i in range(5):
-            temp |= allSideWatchMask & (temp << 9)
-        legalBoard |= blankBoard & (temp << 9)
+        allSideWatchMask    = enemyBoard & 0x007e7e7e7e7e7e00     # 敵コマを考慮した全辺の番人のマスク　（斜めの走査に使う）
+        blankBoard          = ~(myBoard | enemyBoard) & boardMask # 空白を示すボード．空きは1．64bit（8x8）に収めている，
+
+        # 左上                                     # 一つだけ解説を加えておく．
+        temp = allSideWatchMask & (myBoard << 9)   # 自分の盤を左上にずらして敵駒がある限り追従する．はみ出したコマは消す．
+        for i in range(5):                         # この操作を５回繰り返す．
+            temp |= allSideWatchMask & (temp << 9) # ずらし操作
+        legalBoard |= blankBoard & (temp << 9)     # もう一度ずらし操作を行い，敵駒を追跡した先が空いていれば置けるので，これは合法手となる．
 
         # 上
         temp = verticalWatchMask & (myBoard << 8)
@@ -169,11 +189,11 @@ class BitBoard(object):
         reverseBoard = 0x0000000000000000
         for vec in BitBoard.VEC:
             tempBoard = 0x0000000000000000
-            mask = transfer(putPos, vec) # posからvec方向に進む
+            mask = BitBoard.transfer(putPos, vec) # posからvec方向に進む
             while ((mask != 0) and ((mask & enemyBoard) != 0)):
                 # 範囲内にあり，捜査線上に敵コマが存在する限り繰り返す
                 tempBoard |= mask
-                mask = transfer(mask, vec) # どんどんvec方向に進む
+                mask = BitBoard.transfer(mask, vec) # どんどんvec方向に進む
             if ((mask & myBoard) != 0):
                 # 進んだ先に自コマがあればひっくり返す
                 reverseBoard |= tempBoard
@@ -205,16 +225,6 @@ class BitBoard(object):
     def canPut(myBoard, enemyBoard):
         myLegalBoard = BitBoard.makeLegalBoard(myBoard, enemyBoard)
         if myLegalBoard != 0:
-            return True
-        else:
-            return False
-
-    @staticmethod
-    def isEnd(squares):
-        blackBoard, whiteBoard = BitBoard.squaresToBoard(squares)
-        blackLegalBoard = BitBoard.makeLegalBoard(blackBoard, whiteBoard)
-        whiteLegalBoard = BitBoard.makeLegalBoard(whiteBoard, blackBits)
-        if blankBoard == 0 and whiteLegalBoard == 0:
             return True
         else:
             return False

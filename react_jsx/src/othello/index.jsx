@@ -2,6 +2,11 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import request from 'superagent'
 
+const empty = -1;
+const black = 0;
+const white = 1;
+const cpuUrl = 'cpu2';
+
 function getStoneTag(stone) {
     if (stone == black) {
         return (
@@ -129,11 +134,6 @@ class Board extends React.Component {
     }
 }
 
-const empty = -1;
-const black = 0;
-const white = 1;
-const cpuUrl = 'cpu1';
-
 class Game extends React.Component {
     constructor() {
         super();
@@ -148,6 +148,7 @@ class Game extends React.Component {
             squares: squares,
             stepNumber: 0,
             player: black,
+            isEnd: false,
         };
     }
 
@@ -166,21 +167,22 @@ class Game extends React.Component {
         return count;
     }
 
-    tick(player, squares, history, idx, me) {
+    tick(player, squares, history, idx, isEnd, me) {
         let pos = history[idx];
         squares[pos] = player;
         idx = idx + 1;
         me.setState({
             squares: squares,
         });
-        let timer = setTimeout(me.tick, 200, player, squares, history, idx, me);
+        let timer = setTimeout(me.tick, 200, player, squares, history, idx, isEnd, me);
         if (idx >= history.length) {
             let nextPlayer = 1 - player;
             me.setState({
                 stepNumber: me.state.stepNumber + 1,
                 player: nextPlayer,
+                isEnd: isEnd,
             });
-            if (nextPlayer == white) {
+            if (nextPlayer == white && !isEnd) {
                 setTimeout(me.cpu, 1000, nextPlayer, squares, me);
             }
             clearTimeout(timer);
@@ -207,7 +209,7 @@ class Game extends React.Component {
                 console.dir(res);
                 
                 if (res.body['success']) {
-                    this.tick(this.state.player, this.state.squares, res.body['history'], 0, this);
+                    this.tick(this.state.player, this.state.squares, res.body['history'], 0, res.body['isEnd'], this);
                 }
                 else {
                     alert('You cannot put there!!')
@@ -228,7 +230,7 @@ class Game extends React.Component {
             console.dir(res);
             
             if (res.body['success']) {
-                me.tick(player, squares, res.body['history'], 0, me);
+                me.tick(player, squares, res.body['history'], 0, res.body['isEnd'], me);
             }
             else {
                 me.cpuPass();
@@ -253,9 +255,29 @@ class Game extends React.Component {
     }
     
     render() {
-        let nextPlayerTag = getStoneTag(this.state.player);
         let blackCount = this.countStone(black);
         let whiteCount = this.countStone(white);
+        
+        let infoText = "";
+        let infoTag = "";
+        if (this.state.isEnd) {
+            if (blackCount > whiteCount) {
+                infoText = "Winner : ";
+                infoTag = getStoneTag(black);
+            }
+            else if(whiteCount > blackCount) {
+                infoText = "Winner : ";
+                infoTag = getStoneTag(white);
+            }
+            else {
+                infoText = "Draw";
+                infoTag = ""
+            }
+        }
+        else {
+            infoText = "Next Player : ";
+            infoTag = getStoneTag(this.state.player);
+        }
 
         return (
             <div className="game">
@@ -268,13 +290,13 @@ class Game extends React.Component {
                 <div>
                     <div className="game-info">
                         <div>
-                            <h1> Next Player :  {nextPlayerTag} </h1>
+                            <h1> {infoText} {infoTag} </h1>
                         </div>
                         <div>
-                            <h1> {getStoneTag(black)} : {blackCount} </h1>
+                            <h1> {getStoneTag(black)} (YOU) : {blackCount} </h1>
                         </div>
                         <div>
-                            <h1> {getStoneTag(white)} : {whiteCount} </h1>
+                            <h1> {getStoneTag(white)} (CPU) : {whiteCount} </h1>
                         </div>
                         <div>
                             <button onClick={() => this.pass()}>PASS</button>
