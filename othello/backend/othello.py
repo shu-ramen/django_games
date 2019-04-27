@@ -62,13 +62,44 @@ class OthelloSystem(object):
         pos = x + y * 8
         return pos
 
-class OthelloAI(object):
-    METHOD_RUNDOM = 0
+class BitBoard(object):
+    VEC = [-9, -8, -7, -1, 1, 7, 8, 9]
+
+    def __init__(self, squares):
+        self._blackBits, self._whiteBits = BitBoard.squaresToBits(squares)
+
+    @property
+    def blackBits(self):
+        return self._blackBits
+    
+    @property
+    def whiteBits(self):
+        return self._whiteBits
 
     @staticmethod
-    def think(method,player, squares):
-        if (method == OthelloAI.METHOD_RUNDOM):
+    def squaresToBits(squares):
+        blackBits = 0x0000000000000000
+        whiteBits = 0x0000000000000000
+        mask = 0x8000000000000000
+        for i in range(64):
+            mask = mask >> 1
+            if squares[i] == OthelloSystem.BLACK:
+                blackBits = blackBits + mask
+            if squares[i] == OthelloSystem.WHITE:
+                whiteBits = whiteBits + mask
+        return blackBits, whiteBits
+
+
+class OthelloAI(object):
+    METHOD_RANDOM = 0
+    METHOD_EVALFUNC = 1
+
+    @staticmethod
+    def think(method, player, squares):
+        if (method == OthelloAI.METHOD_RANDOM):
             return OthelloAI.random_put(squares, player)
+        elif (method == OthelloAI.METHOD_EVALFUNC):
+            return OthelloAI.eval_func(squares, player)
         else:
             return None, None
     
@@ -80,3 +111,10 @@ class OthelloAI(object):
             idx = random.randrange(64)
             new_squares, history = OthelloSystem.put(player, squares, idx)
         return new_squares, history
+    
+    @staticmethod
+    def eval_func(squares, player):
+        bitBoard = BitBoard(squares)
+        print(format(bitBoard.blackBits, "b").zfill(64))
+        print(format(bitBoard.whiteBits, "b").zfill(64))
+        return None, None

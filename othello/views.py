@@ -44,7 +44,30 @@ def cpu0(request):
         player = data['player']
         squares = data['squares']
 
-        new_squares, history = OthelloAI.think(OthelloAI.METHOD_RUNDOM, player, squares)
+        new_squares, history = OthelloAI.think(OthelloAI.METHOD_RANDOM, player, squares)
+
+        if (new_squares is not None):
+            response = {
+                "success": True,
+                "squares": new_squares,
+                "history": history,
+            }
+        else:
+            response = {
+                "success": False,
+            }
+        return JsonResponse(response)
+    else:
+        return Http404
+
+def cpu1(request):
+    if request.method == 'POST':
+        body = request.body
+        data = json.loads(body)
+        player = data['player']
+        squares = data['squares']
+
+        new_squares, history = OthelloAI.think(OthelloAI.METHOD_EVALFUNC, player, squares)
 
         if (new_squares is not None):
             response = {

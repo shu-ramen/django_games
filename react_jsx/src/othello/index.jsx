@@ -204,10 +204,9 @@ class Game extends React.Component {
                 if (err) {
                     alert(res.text);
                 }
+                console.dir(res);
                 
                 if (res.body['success']) {
-                    console.dir(res.body['history']);
-
                     this.tick(this.state.player, this.state.squares, res.body['history'], 0, this);
                 }
                 else {
@@ -226,10 +225,9 @@ class Game extends React.Component {
             if (err) {
                 alert(res.text);
             }
+            console.dir(res);
             
             if (res.body['success']) {
-                console.dir(res.body['history']);
-
                 me.tick(player, squares, res.body['history'], 0, me);
             }
             else {
