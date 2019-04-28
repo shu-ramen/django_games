@@ -24,7 +24,6 @@ function Square(props) {
   export default class Board extends React.Component {
 
     draw(){
-        //console.log(this.props);
         let copySquare=JSON.parse(JSON.stringify(this.props.squares));
         //if(this.props.pos[0]>1){
         const draw_block=this.props.block.slice().map((each)=>[each[0]+this.props.pos[0],each[1]+this.props.pos[1]]);
@@ -34,6 +33,16 @@ function Square(props) {
         //}
           return copySquare;
     }
+    componentDidUpdate(){
+        if(this.props.fall_flag){
+            this.props.generate();
+            this.props.clear();
+            this.props.endCheck();
+        }
+    }
+
+
+
     renderSquare(i) {
       return (
         <Square
