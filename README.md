@@ -1,8 +1,18 @@
-# django_games
+# Required Environments
+## Python
+* Python 3.6
+* Django 2.1.7
+* numpy  1.16.2
+## npm
+* npm    5.6.0
 
+# To Run This App
 ```
-$ conda activate webdev
-$ cd django_games
+$ git clone https://github.com/shu-ramen/django_games.git
+$ conda activate [Your Django Environment]
+$ cd django_games/react_jsx
+$ npm install
+$ cd ..
 $ python manage.py runserver react
 ```
 
