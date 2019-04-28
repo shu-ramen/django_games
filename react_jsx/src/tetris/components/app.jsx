@@ -117,7 +117,6 @@ export default class App extends React.Component {
 
   //ブロックの生成
   generateObj(){
-    console.log("genarate");
     const ran=Math.floor(Math.random() * Math.floor(obj_base.length));
     const new_base=obj_base[ran];
     const new_next={form:new_base,obj:obj_set[new_base]}
@@ -147,7 +146,6 @@ export default class App extends React.Component {
         this.setState((state)=>{return{keep:state.now,now:state.keep};});
 
       }
-      //this.setState(()=>{return{keep_flag:false,pos:init_pos}},()=>console.log(this.state.keep.form));
       this.setState({keep_flag:false,pos:init_pos});
     }
     
@@ -237,6 +235,7 @@ export default class App extends React.Component {
 
   //列が揃っていたら消す
   clearBlock(){
+    const score_sheet=[0,40,100,300,1200];
     let copySquare=JSON.parse(JSON.stringify(this.state.squares));
     let hoge=[];
     for(let i=1;i<this.state.squares.length-1;i++){
@@ -249,7 +248,7 @@ export default class App extends React.Component {
       copySquare.splice(i,1);
       copySquare.splice(1,0,complement);
     }
-    this.setState({squares:copySquare});
+    this.setState({squares:copySquare,score:this.state.score+score_sheet[hoge.length]});
     
 
   }
@@ -301,12 +300,23 @@ export default class App extends React.Component {
       <Announce/>
       <Now now={this.state.now} next={this.state.next} keep={this.state.keep}/>
       <KeyInput move={this.moveBlock} fall={this.fallBlock} game_status={this.state.game_status} keep={this.keepBlock} rotate={this.rotateBlock}/>
-      <div id="game"><Game game={this.init_game}/></div>
+      <div>
+      <button onClick={this.init_game}></button>
+      </div>
+
       <Board squares={this.state.squares} pos={this.state.pos} block={this.state.now.obj} clear={this.clearBlock} generate={this.generateObj} endCheck={this.endCheck}fall_flag={this.state.fall_flag} H={H} W={W}/>
+      <Score score={this.state.score}/>
+
     </div>
   );
 
   }
+}
+
+function Score (props){
+  return(
+    <div> score : {props.score}</div>
+  );
 }
 
 function Now (props){
