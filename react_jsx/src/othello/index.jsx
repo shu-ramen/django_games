@@ -183,7 +183,7 @@ class Game extends React.Component {
                 isEnd: isEnd,
             });
             if (nextPlayer == white && !isEnd) {
-                setTimeout(me.cpu, 1000, nextPlayer, squares, me);
+                setTimeout(me.cpu, 100, nextPlayer, squares, me);
             }
             clearTimeout(timer);
         }

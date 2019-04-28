@@ -2,20 +2,9 @@ import random
 
 from abc import ABCMeta, abstractmethod
 from othello.backend.othello import OthelloSystem, BitBoard
+from othello.backend.eval import Evaluator
 
 class OthelloAI(metaclass=ABCMeta):
-    SCORES = [
-        [
-             30, -12,  0, -1, -1,  0, -12,  30,
-            -12, -15, -3, -3, -3, -3, -15, -12,
-              0,  -3,  0, -1, -1,  0,  -3,   0,
-             -1,  -3, -1, -1, -1, -1,  -3,  -1,
-             -1,  -3, -1, -1, -1, -1,  -3,  -1,
-              0,  -3,  0, -1, -1,  0,  -3,   0,
-            -12, -15, -3, -3, -3, -3, -15, -12,
-             30, -12,  0, -1, -1,  0, -12,  30
-        ]
-    ]
 
     def __init__(self, player, squares):
         self._player = player
@@ -32,18 +21,6 @@ class OthelloAI(metaclass=ABCMeta):
     @abstractmethod
     def think(self):
         raise NotImplementedError()
-    
-    @staticmethod
-    def evaluate_score(scoreId, myBoard, enemyBoard):
-        myIndices = BitBoard.getIndices(myBoard)
-        enemyIndices = BitBoard.getIndices(enemyBoard)
-        myScore = 0
-        enemyScore = 0
-        for idx in myIndices:
-            myScore += OthelloAI.SCORES[scoreId][idx]
-        for idx in enemyIndices:
-            enemyScore += OthelloAI.SCORES[scoreId][idx]
-        return myScore - enemyScore
 
 
 class RandomAI(OthelloAI):
@@ -78,7 +55,7 @@ class SimpleEvalAI(OthelloAI):
         putPos = -1
         for idx in legalIndices:
             temp_cpuBoard, temp_playerBoard, reverseBoard = BitBoard.reverse(cpuBoard, playerBoard, idx)
-            temp_score = OthelloAI.evaluate_score(0, temp_cpuBoard, temp_playerBoard)
+            temp_score = Evaluator.evaluate(0, temp_cpuBoard, temp_playerBoard)
             print(temp_score)
             if temp_score > maxScore:
                 maxScore = temp_score
@@ -86,7 +63,7 @@ class SimpleEvalAI(OthelloAI):
         return OthelloSystem.put(self._player, self._squares, putPos)
 
 class DeepEvalAI(OthelloAI):
-    DEPTH = 6
+    DEPTH = 4
 
     def __init__(self, player, squares):
         super().__init__(player, squares)
@@ -109,7 +86,7 @@ class DeepEvalAI(OthelloAI):
                 temp_cpuBoard, temp_playerBoard, reverseBoard = BitBoard.reverse(cpuBoard, playerBoard, idx)
             else:
                 temp_playerBoard, temp_cpuBoard, reverseBoard = BitBoard.reverse(playerBoard, cpuBoard, idx)
-            temp_score = OthelloAI.evaluate_score(0, temp_cpuBoard, temp_playerBoard)
+            temp_score = Evaluator.evaluate(0, temp_cpuBoard, temp_playerBoard)
             if depth == 0:
                 scores.append(temp_score)
             else:
@@ -125,8 +102,8 @@ class DeepEvalAI(OthelloAI):
                 if depth == DeepEvalAI.DEPTH:
                     return putPos
                 else:
-                    return maxScore
+                    return maxScore # 利益を最大化する
             else:
-                return min(scores)
+                return min(scores)  # 相手はリスクを最小化してくると想定
         else:
             return 0
