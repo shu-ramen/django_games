@@ -65,20 +65,6 @@ function KeyInput(props){
     );
 }
 
-class Game extends React.Component{
-  constructor(props){
-    super(props);
-    this.test=this.test.bind(this);
-  }
-  test(){
-    this.props.game();
-  }
-
-  
-  render(){return(<button onClick={this.test}></button>);}
-}
-
-
 export default class App extends React.Component {
   //初期化
   constructor(props) {
@@ -214,8 +200,6 @@ export default class App extends React.Component {
   fallBlock(){
     const test=this.moveBlock(1,0);
     if(test===false){
-      //clearInterval(this.ID);
-      //this.setState(()=>this.setBlock(),()=>{this.game()});
       this.setState(()=>{return(this.setBlock());});
     }
   }
@@ -255,9 +239,7 @@ export default class App extends React.Component {
   endCheck(){
     const check=this.moveBlock(0,0);
     if(!(check)){
-      //this.setState(()=>{return{game_status:false,draw:this.state.squares};},alert("game over"));
       this.setState(()=>{return{game_status:false,draw:this.state.squares};},alert("game over"));
-      //this.setBlock();
       clearInterval(this.ID);
     }
 
@@ -276,23 +258,6 @@ export default class App extends React.Component {
     this.ID=setInterval(()=>this.fallBlock(),1000);
     }
   }
-
-
-
-  game(){
-    if(this.state.fall_flag){
-    //this.generateObj();
-    //列が揃っていたら消す
-    //ゲームの終了判定
-    //新しく生成されたブロックが重なったら終了
-    //this.endCheck();
-    //this.setState(()=>{return{squares:this.clearBlock()};},()=>{this.endCheck()});
-    }
-    this.fallBlock();
-  }
-
-
-
   render(){
     
   return (

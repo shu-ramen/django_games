@@ -1,6 +1,4 @@
 import React from "react";
-//const H=9;
-//const W=6;
 function Square(props) {
     let name="square ";
     switch(props.value){
