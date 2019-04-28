@@ -1,6 +1,7 @@
-import React from 'react';
-import './App.css';
-import Board from'./Board';
+import React from "react";
+
+import Board from './board.jsx';
+
 const H=14;
 const W=10;
 let complement=new Array(W).fill(0);

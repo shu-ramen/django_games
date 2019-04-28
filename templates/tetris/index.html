@@ -1,0 +1,17 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+  <head>
+    {% csrf_token %}
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="{% static 'css/tetris/app.css' %}"/>
+    <link rel="stylesheet" href="{% static 'css/tetris/index.css' %}"/>
+  </head>
+  <body>
+    <div id="head"></div>
+    <div id="root"></div>
+    <script src="{% static 'js/tetris_index.js' %}"></script>
+  </body>
+</html>
