@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'home',
     'othello',
-    'tetris'
+    'tetris',
+    'shogi'
 ]
 
 MIDDLEWARE = [

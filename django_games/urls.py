@@ -20,5 +20,6 @@ urlpatterns = [
     path('', include('home.urls')),
     path('othello/', include('othello.urls')),
     path('tetris/', include('tetris.urls')),
+    path('shogi/', include('shogi.urls')),
     path('admin/', admin.site.urls),
 ]
