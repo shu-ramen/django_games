@@ -16,7 +16,7 @@ const SHOGI_PIECE_TYPES = {
     PAWN:   7,    // 歩兵
 }
 
-function ShogiPiece(pieceType, isPromoted, isEnemy, movement) {
+function ShogiPiece(pieceType, isPromoted, isEnemy, movement, isSelected, isAvalilable) {
     this.pieceType = pieceType;
     this.isPromoted = isPromoted;
     this.isEnemy = isEnemy;
@@ -107,19 +107,31 @@ export class ShogiPieceComponent extends React.Component {
         }
 
         if (this.props.piece.isPromoted) {
-            className += "promoted";
+            className += "promoted ";
         }
         
         if (this.props.piece.isEnemy) {
             style = { transform: "rotate(180deg)" };
         }
-
         return { value, className, style }
+    }
+    checkMovementAvailable(name){
+        if(this.props.isSelected){
+            return name+="selected ";
+        }
+        else if(this.props.isAvalilable){
+            return name+="available ";
+        }
+        else{
+            return name;
+        }
     }
 
 
     render() {
         let { value, className, style } = this.createPiece();
+        className = this.checkMovementAvailable(className);
+
 
         return (
             <button className={className} style={style} onClick={() => this.props.onClick()}>
