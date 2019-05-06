@@ -2,6 +2,8 @@ import React from 'react';
 import { Movement } from './movement.jsx'
 
 // データ定義
+const movement = new Movement();
+
 const SHOGI_PIECE_TYPES = {
     NONE:  -1,    // なし
     KING:   0,    // 王将
@@ -14,46 +16,46 @@ const SHOGI_PIECE_TYPES = {
     PAWN:   7,    // 歩兵
 }
 
-export const SHOGI_PIECES = {
-    // EMPTY
-    EMPTY:       new ShogiPiece(SHOGI_PIECE_TYPES.NONE,   false, false),
-    // MY
-    MY_KING:     new ShogiPiece(SHOGI_PIECE_TYPES.KING,   false, false),
-    MY_ROOK:     new ShogiPiece(SHOGI_PIECE_TYPES.ROOK,   false, false),
-    MY_ROOK_P:   new ShogiPiece(SHOGI_PIECE_TYPES.ROOK,    true, false),
-    MY_BISHOP:   new ShogiPiece(SHOGI_PIECE_TYPES.BISHOP, false, false),
-    MY_BISHOP_P: new ShogiPiece(SHOGI_PIECE_TYPES.BISHOP,  true, false),
-    MY_GOLD:     new ShogiPiece(SHOGI_PIECE_TYPES.GOLD,   false, false),
-    MY_SILVER:   new ShogiPiece(SHOGI_PIECE_TYPES.SILVER, false, false),
-    MY_SILVER_P: new ShogiPiece(SHOGI_PIECE_TYPES.SILVER,  true, false),
-    MY_KNIGHT:   new ShogiPiece(SHOGI_PIECE_TYPES.KNIGHT, false, false),
-    MY_KNIGHT_P: new ShogiPiece(SHOGI_PIECE_TYPES.KNIGHT,  true, false),
-    MY_LANCE:    new ShogiPiece(SHOGI_PIECE_TYPES.LANCE,  false, false),
-    MY_LANCE_P:  new ShogiPiece(SHOGI_PIECE_TYPES.LANCE,   true, false),
-    MY_PAWN:     new ShogiPiece(SHOGI_PIECE_TYPES.PAWN,   false, false),
-    MY_PAWN_P:   new ShogiPiece(SHOGI_PIECE_TYPES.PAWN,    true, false),
-    // ENEMY
-    EN_KING:     new ShogiPiece(SHOGI_PIECE_TYPES.KING,   false,  true),
-    EN_ROOK:     new ShogiPiece(SHOGI_PIECE_TYPES.ROOK,   false,  true),
-    EN_ROOK_P:   new ShogiPiece(SHOGI_PIECE_TYPES.ROOK,    true,  true),
-    EN_BISHOP:   new ShogiPiece(SHOGI_PIECE_TYPES.BISHOP, false,  true),
-    EN_BISHOP_P: new ShogiPiece(SHOGI_PIECE_TYPES.BISHOP,  true,  true),
-    EN_GOLD:     new ShogiPiece(SHOGI_PIECE_TYPES.GOLD,   false,  true),
-    EN_SILVER:   new ShogiPiece(SHOGI_PIECE_TYPES.SILVER, false,  true),
-    EN_SILVER_P: new ShogiPiece(SHOGI_PIECE_TYPES.SILVER,  true,  true),
-    EN_KNIGHT:   new ShogiPiece(SHOGI_PIECE_TYPES.KNIGHT, false,  true),
-    EN_KNIGHT_P: new ShogiPiece(SHOGI_PIECE_TYPES.KNIGHT,  true,  true),
-    EN_LANCE:    new ShogiPiece(SHOGI_PIECE_TYPES.LANCE,  false,  true),
-    EN_LANCE_P:  new ShogiPiece(SHOGI_PIECE_TYPES.LANCE,   true,  true),
-    EN_PAWN:     new ShogiPiece(SHOGI_PIECE_TYPES.PAWN,   false,  true),
-    EN_PAWN_P:   new ShogiPiece(SHOGI_PIECE_TYPES.PAWN,    true,  true),
-}
-
-function ShogiPiece(pieceType, isPromoted, isEnemy) {
+function ShogiPiece(pieceType, isPromoted, isEnemy, movement) {
     this.pieceType = pieceType;
     this.isPromoted = isPromoted;
     this.isEnemy = isEnemy;
-    this.movement = movement;
+    this.movement = JSON.parse(JSON.stringify(movement));
+}
+
+export const SHOGI_PIECES = {
+    // EMPTY
+    EMPTY:       new ShogiPiece(SHOGI_PIECE_TYPES.NONE,   false, false, movement.empty()),
+    // MY
+    MY_KING:     new ShogiPiece(SHOGI_PIECE_TYPES.KING,   false, false, movement.king()),
+    MY_ROOK:     new ShogiPiece(SHOGI_PIECE_TYPES.ROOK,   false, false, movement.rook()),
+    MY_ROOK_P:   new ShogiPiece(SHOGI_PIECE_TYPES.ROOK,    true, false, movement.rook_p()),
+    MY_BISHOP:   new ShogiPiece(SHOGI_PIECE_TYPES.BISHOP, false, false, movement.bishop()),
+    MY_BISHOP_P: new ShogiPiece(SHOGI_PIECE_TYPES.BISHOP,  true, false, movement.bishop_p()),
+    MY_GOLD:     new ShogiPiece(SHOGI_PIECE_TYPES.GOLD,   false, false, movement.gold()),
+    MY_SILVER:   new ShogiPiece(SHOGI_PIECE_TYPES.SILVER, false, false, movement.silver()),
+    MY_SILVER_P: new ShogiPiece(SHOGI_PIECE_TYPES.SILVER,  true, false, movement.gold()),
+    MY_KNIGHT:   new ShogiPiece(SHOGI_PIECE_TYPES.KNIGHT, false, false, movement.knight()),
+    MY_KNIGHT_P: new ShogiPiece(SHOGI_PIECE_TYPES.KNIGHT,  true, false, movement.gold()),
+    MY_LANCE:    new ShogiPiece(SHOGI_PIECE_TYPES.LANCE,  false, false, movement.lance()),
+    MY_LANCE_P:  new ShogiPiece(SHOGI_PIECE_TYPES.LANCE,   true, false, movement.gold()),
+    MY_PAWN:     new ShogiPiece(SHOGI_PIECE_TYPES.PAWN,   false, false, movement.pawn()),
+    MY_PAWN_P:   new ShogiPiece(SHOGI_PIECE_TYPES.PAWN,    true, false, movement.gold()),
+    // ENEMY
+    EN_KING:     new ShogiPiece(SHOGI_PIECE_TYPES.KING,   false,  true, movement.empty()),
+    EN_ROOK:     new ShogiPiece(SHOGI_PIECE_TYPES.ROOK,   false,  true, movement.empty()),
+    EN_ROOK_P:   new ShogiPiece(SHOGI_PIECE_TYPES.ROOK,    true,  true, movement.empty()),
+    EN_BISHOP:   new ShogiPiece(SHOGI_PIECE_TYPES.BISHOP, false,  true, movement.empty()),
+    EN_BISHOP_P: new ShogiPiece(SHOGI_PIECE_TYPES.BISHOP,  true,  true, movement.empty()),
+    EN_GOLD:     new ShogiPiece(SHOGI_PIECE_TYPES.GOLD,   false,  true, movement.empty()),
+    EN_SILVER:   new ShogiPiece(SHOGI_PIECE_TYPES.SILVER, false,  true, movement.empty()),
+    EN_SILVER_P: new ShogiPiece(SHOGI_PIECE_TYPES.SILVER,  true,  true, movement.empty()),
+    EN_KNIGHT:   new ShogiPiece(SHOGI_PIECE_TYPES.KNIGHT, false,  true, movement.empty()),
+    EN_KNIGHT_P: new ShogiPiece(SHOGI_PIECE_TYPES.KNIGHT,  true,  true, movement.empty()),
+    EN_LANCE:    new ShogiPiece(SHOGI_PIECE_TYPES.LANCE,  false,  true, movement.empty()),
+    EN_LANCE_P:  new ShogiPiece(SHOGI_PIECE_TYPES.LANCE,   true,  true, movement.empty()),
+    EN_PAWN:     new ShogiPiece(SHOGI_PIECE_TYPES.PAWN,   false,  true, movement.empty()),
+    EN_PAWN_P:   new ShogiPiece(SHOGI_PIECE_TYPES.PAWN,    true,  true, movement.empty()),
 }
 
 // 駒コンポーネントクラス
