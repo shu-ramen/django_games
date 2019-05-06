@@ -4,7 +4,7 @@ import { Movement } from './movement.jsx'
 // データ定義
 const movement = new Movement();
 
-const SHOGI_PIECE_TYPES = {
+export const SHOGI_PIECE_TYPES = {
     NONE:  -1,    // なし
     KING:   0,    // 王将
     ROOK:   1,    // 飛車
@@ -16,11 +16,13 @@ const SHOGI_PIECE_TYPES = {
     PAWN:   7,    // 歩兵
 }
 
-function ShogiPiece(pieceType, isPromoted, isEnemy, movement, isSelected, isAvalilable) {
+function ShogiPiece(pieceType, isPromoted, isEnemy, movement) {
     this.pieceType = pieceType;
     this.isPromoted = isPromoted;
     this.isEnemy = isEnemy;
     this.movement = JSON.parse(JSON.stringify(movement));
+    this.isSelected = false;
+    this.isAvailable = false;
 }
 
 export const SHOGI_PIECES = {
@@ -113,25 +115,19 @@ export class ShogiPieceComponent extends React.Component {
         if (this.props.piece.isEnemy) {
             style = { transform: "rotate(180deg)" };
         }
+
+        if (this.props.piece.isSelected) {
+            className += "selected ";
+        }
+
+        if (this.props.piece.isAvailable) {
+            className += "available ";
+        }
+
         return { value, className, style }
     }
-    checkMovementAvailable(name){
-        if(this.props.isSelected){
-            return name+="selected ";
-        }
-        else if(this.props.isAvalilable){
-            return name+="available ";
-        }
-        else{
-            return name;
-        }
-    }
-
-
     render() {
         let { value, className, style } = this.createPiece();
-        className = this.checkMovementAvailable(className);
-
 
         return (
             <button className={className} style={style} onClick={() => this.props.onClick()}>

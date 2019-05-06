@@ -48,3 +48,11 @@ body {
   .game-info {
     margin-left: 20px;
   }
+
+  .selected {
+    background: #f00;
+  }
+
+  .available {
+    background: #0f0;
+  }
