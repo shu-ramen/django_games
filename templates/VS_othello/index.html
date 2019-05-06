@@ -1,0 +1,17 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+  <head>
+    {% csrf_token %}
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="{% static 'css/style.css' %}"/>
+  </head>
+  <body>
+    <img src="{% static 'images/dog.png' %}" style="display:none" />
+    <img src="{% static 'images/cat.png' %}" style="display:none" />
+    <div id="container"></div>
+    <script src="{% static 'js/VS_othello_index.js' %}"></script>
+  </body>
+</html>
