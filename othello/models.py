@@ -12,7 +12,7 @@ class Kifu(models.Model):
     player = models.ForeignKey('Player', on_delete=models.CASCADE)
     count = models.IntegerField(default = 0)
     position = models.IntegerField()
-    board_black = models.BigIntegerField(default = 0)
-    board_white = models.BigIntegerField(default = 0)
+    board_black = models.BigIntegerField(default = 0x0000001008000000)
+    board_white = models.BigIntegerField(default = 0x0000000810000000)
 #誰がどこに何手目で打ったか
 
