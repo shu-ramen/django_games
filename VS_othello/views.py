@@ -2,43 +2,130 @@ from django.shortcuts import render
 from django.http import HttpResponse, Http404
 from django.http.response import JsonResponse
 from django.template import loader
+from VS_othello.backend.othello import BitBoard
+
+from .models import Player, Taikyoku, Kifu
 
 import json
 
-from othello.backend.othello import OthelloSystem
+from VS_othello.backend.othello import OthelloSystem
 from othello.backend.othelloAI import RandomAI, SimpleEvalAI, DeepEvalAI
 
 # Create your views here.
 def index(request):
-    template = loader.get_template('othello/index.html')
+    template = loader.get_template('VS_othello/index.html')
     context = {}
     return HttpResponse(template.render(context, request))
 
-def putStone(request):
+def vs_page(request,player_id,taikyoku_id):
+    template = loader.get_template('VS_othello/index.html')
+    context = {"player":player_id,"taikyoku":taikyoku_id}
+    return HttpResponse(template.render(context, request))
+
+def get_board(request,play,taikyoku):
     if request.method == 'POST':
         body = request.body
         data = json.loads(body)
         player = data['player']
         squares = data['squares']
         put_pos = data['put_pos']
-
         new_squares, history = OthelloSystem.put(player, squares, put_pos)
+        playerBoard, cpuBoard = BitBoard.squaresToBoard(squares)
+        
+        #-------------------------------D-----------------
+        if Kifu.objects.filter(taikyoku_id=taikyoku).count() % 2 == 1:
+             kifu = Kifu(
+                        taikyoku_id=taikyoku,
+                        player_id=Taikyoku.objects.get(id=1).player_black_id.id,
+                        count=Kifu.objects.filter(taikyoku_id=Taikyoku(id=1)).count()+1,
+                        position=put_pos,
+                        board_black=playerBoard,
+                        board_white=cpuBoard
+                        )
+        else :
+            kifu = Kifu(
+                        taikyoku_id=taikyoku,
+                        player_id=Taikyoku.objects.get(id=1).player_white_id.id,
+                        count=Kifu.objects.filter(taikyoku_id=Taikyoku(id=1)).count()+1,
+                        position=put_pos,
+                        board_black=playerBoard,
+                        board_white=cpuBoard
+                        )
+        kifu.save()
+        
+        #--------------deka----------------------
+
 
         if (new_squares is not None):
             response = {
                 "success": True,
                 "squares": new_squares,
                 "history": history,
-                "isEnd": OthelloSystem.isEnd(new_squares),
+                "isEnd": OthelloSystem.isEnd(new_squares)
             }
         else:
             response = {
                 "success": False,
             }
         return JsonResponse(response)
-    else:
-        return Http404
+#---------------------D-------------------------------------------   
+#  
+    
+    elif request.method == 'GET':  
+        print(taikyoku)
+        #player_id = request.GET.get('player_id')
+        #taikyoku_id = request.GET.get('taikyoku_id')
+        if Kifu.objects.filter(taikyoku_id=taikyoku).all().count()!=0:
+            kifu = Kifu.objects.filter(taikyoku_id=taikyoku).order_by('-id')[0]
+            squares = BitBoard.boardToSquares(kifu.board_black, kifu.board_white)
+        else:
+            white_player=Taikyoku.objects.get(id=taikyoku).player_white_id.id
+            print(white_player)
+            kifu = Kifu(
+                        taikyoku_id=taikyoku,
+                        player_id=white_player,
+                        count=0,
+                        position=-1,
+                        board_black=0x0000001008000000,
+                        board_white=0x0000000810000000,
+                        )
+            squares=BitBoard.boardToSquares(kifu.board_black, kifu.board_white)
+            #kifu.save()
+        if not(play==white_player):
+            res_player=0
+        else:
+            res_player=1
+        response = {
+            "success":True,
+            "player": res_player,
+            "squares": squares,
+        }
 
+        return JsonResponse(response)
+        # return JsonResponse(response)
+    else:
+        return Http404     
+    
+#-----------------D--------------------------------------------------
+"""
+def checkBlack(request):
+    if request.method == 'GET':  
+        
+        player_id = request.GET.get('player_id')
+        taikyoku_id = request.GET.get('taikyoku_id')
+
+        kifu = Kifu.objects.get(taikyoku=taikyoku_id).latest()
+
+        flag= (Taikyoku.objects.get(id=taikyoku_id).player_black_id == kifu.player)
+
+        response = {
+            "flag" : flag
+        }
+
+        return JsonResponse(response)
+    else:
+        return Http404   
+"""
 def cpu0(request):
     if request.method == 'POST':
         body = request.body
@@ -102,6 +189,41 @@ def cpu2(request):
         new_squares, history = AI.think()
 
         if (new_squares is not None):
+            response = {
+                "success": True,
+                "squares": new_squares,
+                "history": history,
+                "isEnd": OthelloSystem.isEnd(new_squares),
+            }
+        else:
+            response = {
+                "success": False,
+            }
+        return JsonResponse(response)
+    else:
+        return Http404
+
+
+def vs_bot(request,player_id,taikyoku_id):
+    if request.method == 'POST':
+        body = request.body
+        data = json.loads(body)
+        player = data['player']
+        squares = data['squares']
+
+        AI = DeepEvalAI(player, squares)
+        new_squares, history = AI.think()
+
+        if (new_squares is not None):
+            kifu = Kifu(
+                        taikyoku=Taikyoku(id=1),
+                        player=Taikyoku.objects.get(id=1).player_white_id,
+                        count=Kifu.objects.filter(taikyoku_id=Taikyoku(id=1)).count()+1,
+                        position=put_pos,
+                        board_black=playerBoard,
+                        board_white=cpuBoard
+                        )
+            kifu.save()
             response = {
                 "success": True,
                 "squares": new_squares,

@@ -5,7 +5,7 @@ import request from 'superagent'
 const empty = -1;
 const black = 0;
 const white = 1;
-const cpuUrl = 'cpu2';
+const cpuUrl = './vs_bot';
 
 function getStoneTag(stone) {
     if (stone == black) {
@@ -137,19 +137,40 @@ class Board extends React.Component {
 class Game extends React.Component {
     constructor() {
         super();
+        console.log("constructor");
         // Create squares
+        /*
         let squares = Array(64).fill(empty);
         squares[this.calcPos(4, 4)] = black;
         squares[this.calcPos(5, 4)] = white;
         squares[this.calcPos(4, 5)] = white;
         squares[this.calcPos(5, 5)] = black;
+        */
 
+        
         this.state = {
-            squares: squares,
+            squares: Array(64).fill(empty),
             stepNumber: 0,
             player: black,
             isEnd: false,
+            myColor: -1,
         };
+
+        const reloadURL="./get_board";
+        let myColor,squares;
+        addHeader(request.get(reloadURL))
+             .end(function (err, res) {
+                 if (err) {
+                     alert(res.text);
+                 }
+                 console.dir(res);
+                 myColor=res.body["player"];
+                 squares=res.body["squares"];
+                 console.log("通信後");
+                 this.setState({myColor:myColor,squares:squares});
+                 console.log(myColor);
+             }.bind(this));
+        
     }
 
     // 1 <= x, y <= 8
@@ -182,7 +203,7 @@ class Game extends React.Component {
                 player: nextPlayer,
                 isEnd: isEnd,
             });
-            if (nextPlayer == white && !isEnd) {
+            if (nextPlayer !== this.state.myColor && !isEnd) {
                 setTimeout(me.cpu, 100, nextPlayer, squares, me);
             }
             clearTimeout(timer);
@@ -190,11 +211,11 @@ class Game extends React.Component {
     }
 
     handleClick(i) {
-        if (this.state.player == white) {
+        if (this.state.player == this.state.myColor) {
             alert("It is not your turn!");
         }
 
-        const url = 'put_stone';
+        const url = './get_board';
 
         addHeader(request.post(url))
             .send({
@@ -239,9 +260,9 @@ class Game extends React.Component {
     }
 
     pass() {
-        if (this.state.player == black) {
+        if (this.state.player == this.state.myColor) {
             this.setState({
-                player : white,
+                player : 1-this.state.myColor,
             });
             this.cpu(white, this.state.squares, this);
         }
