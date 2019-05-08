@@ -3,7 +3,7 @@ const AVAILABLE = 1; // いい
 
 const LT = [7, 7];  // 左上
 const T  = [7, 8];  // 上
-const RT = [8, 9];  // 右上
+const RT = [7, 9];  // 右上
 const L  = [8, 7];  // 左
 const R  = [8, 9];  // 右
 const LB = [9, 7];  // 左下
@@ -13,7 +13,7 @@ const RB = [9, 9];  // 右下
 // 空
 const EMPTY_MOVE = (new Array(17)).fill((new Array(17)).fill(NOT_AVAILABLE));
 
-export default class Movement {
+export class Movement {
     array_copy(array) {
         return JSON.parse(JSON.stringify(array));
     }
@@ -96,11 +96,10 @@ export default class Movement {
         return this.make_it_move(move, positions);
     }
     //歩
-    pown(){
+    pawn(){
         let move = this.array_copy(EMPTY_MOVE);
         let positions = [T];
         return this.make_it_move(move, positions);
     }
-    
 
 }
