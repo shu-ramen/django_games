@@ -2,4 +2,4 @@ from django.apps import AppConfig
 
 
 class OthelloConfig(AppConfig):
-    name = 'othello'
+    name = 'VS_othello'
