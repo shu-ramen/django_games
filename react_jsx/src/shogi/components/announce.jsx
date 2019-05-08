@@ -5,6 +5,9 @@ export default class Announce extends React.Component {
     }
 
     render() {
-
+        return (
+            <div>
+            </div>
+        )
     }
 }

@@ -50,9 +50,11 @@ body {
   }
 
   .selected {
-    background: #f00;
+    background: #191970;
+    color: #ffffff;
   }
 
   .available {
-    background: #0f0;
+    background: #87cefa;
+    color: #000000;
   }

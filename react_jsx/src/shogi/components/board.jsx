@@ -2,80 +2,82 @@ import React from 'react';
 import { SHOGI_PIECES as SP, ShogiPieceComponent, SHOGI_PIECE_TYPES as SPT } from './shogi_piece.jsx';
 
 // データ定義
-const BOARD_SIZE = {
-    ROW_LENGTH: 9,
-    COL_LENGTH: 9,
-}
+const VECTORS = [
+    [-1, -1],
+    [ 0, -1],
+    [ 1, -1],
+    [-1,  0],
+    [ 1,  0],
+    [-1,  1],
+    [ 0,  1],
+    [ 1,  1]
+]
 
 // 公開クラス
 export class Board extends React.Component {
     calcMove() {
+        // 盤面を取得
         let pieces = JSON.parse(JSON.stringify(this.props.pieces));
+        // 選択個所を取得
         let x = this.props.selectedPos[0];
         let y = this.props.selectedPos[1];
         let selected = pieces[y][x];
+        // 選択された駒を選択された状態にする
         pieces[y][x].isSelected = true;
-        if (selected.pieceType != SP.MY_KNIGHT) {
-            let vectors = [
-                [-1, -1],
-                [ 0, -1],
-                [ 1, -1],
-                [-1,  0],
-                [ 1,  0],
-                [-1,  1],
-                [ 0,  1],
-                [ 1,  1]
-            ]
-            let ignoreIdxList = [];
-            for (let i = 0; i < 8; i++) {
-                for (let j = 0; j < vectors.length; j++) {
-                    // 無視リストにあれば無視
-                    if (ignoreIdxList.includes(j) == false) {
-                        let vx = 8 + (vectors[j][0] * (i + 1));
-                        let vy = 8 + (vectors[j][1] * (i + 1));
-                        let isAvailabel = selected.movement[vy][vx];
-                        if (isAvailabel) {
-                            let tx = x + (vx - 8);
-                            let ty = y + (vy - 8);
-                            if (tx >= 0 && tx < 9 && ty >= 0 && ty < 9) {
-                                if (pieces[ty][tx].isEnemy == true) {
-                                    ignoreIdxList.push(j);
-                                    pieces[ty][tx].isAvailable = true;
-                                }
-                                else if (pieces[ty][tx].pieceType == SPT.NONE) {
-                                    pieces[ty][tx].isAvailable = true;
-                                }
-                                else {
-                                    ignoreIdxList.push(j);
-                                    pieces[ty][tx].isAvailable = false;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        else {
-            for (let vy = 0; vy < 17; vy++) {
-                for (let vx = 0; vx < 17; vx++) {
-                    let isAvailabel = selected.movement[vy][vx];
-                    if (isAvailabel) {
-                        let tx = x + (vx - 8);
-                        let ty = y + (vy - 8);
-                        if (tx >= 0 && tx < 9 && ty >= 0 && ty < 9) {
-                            if (pieces[ty][tx].isEnemy == true || pieces[ty][tx].pieceType == SPT.EMPTY) {
-                                pieces[ty][tx].isAvailable = true;
-                            }
-                        }
-                    }
+        // 移動できる場所を検索
+        let ignoreIdxList = [];
+        for (let i = 0; i < 8; i++) {
+            // 無視リストが埋まったら抜ける
+            if (ignoreIdxList.length == VECTORS.length) {
+                break;
+            } 
+            for (let j = 0; j < VECTORS.length; j++) {
+                // 無視リストにあれば無視
+                if (ignoreIdxList.includes(j) == false) {
+                    let vx = 8 + (VECTORS[j][0] * (i + 1));
+                    let vy = 8 + (VECTORS[j][1] * (i + 1));
+                    this.checkAvailability(pieces, selected, ignoreIdxList, x, y, vx, vy, j);
                 }
             }
         }
         return pieces;
     }
 
+    checkAvailability(pieces, selected, ignoreIdxList, x, y, vx, vy, coef) {
+        let tx = x + (vx - 8);
+        let ty = y + (vy - 8);
+        let isAvailable = selected.movement[vy][vx];
+        if (isAvailable) {
+            if (tx >= 0 && tx < 9 && ty >= 0 && ty < 9) {
+                if (pieces[ty][tx].isEnemy == true) {
+                    // 敵コマなら
+                    ignoreIdxList.push(coef);
+                    pieces[ty][tx].isAvailable = true;
+                }
+                else if (pieces[ty][tx].pieceType == SPT.NONE) {
+                    // 空きマスなら
+                    pieces[ty][tx].isAvailable = true;
+                }
+                else {
+                    // 自コマなら
+                    ignoreIdxList.push(coef);
+                    pieces[ty][tx].isAvailable = false;
+                }
+            }
+        }
+        else {
+            // 置けない場所なら
+            if (tx >= 0 && tx < 9 && ty >= 0 && ty < 9) {
+                if (selected.pieceType != SPT.KNIGHT && coef < 2) {
+                    // 桂馬じゃなければ
+                    ignoreIdxList.push(coef);
+                    pieces[ty][tx].isAvailable = false;
+                }
+            }
+        }
+    }
+
     getPieceComponents(pieces) {
-        console.dir(pieces);
         // 駒を配置する
         let pieceComponents = pieces.slice().map((row, y) =>
             <div className="board-row">
@@ -91,10 +93,10 @@ export class Board extends React.Component {
 
     renderPieceComponent(piece, x, y) {
         let click_function = null;
-        if (this.isSelected) {
+        if (piece.isSelected) {
             click_function = this.props.click_select;
         }
-        else if (this.isAvailabel) {
+        else if (piece.isAvailable) {
             click_function = this.props.click_move;
         }
         else {
