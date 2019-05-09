@@ -137,7 +137,6 @@ class Board extends React.Component {
 class Game extends React.Component {
     constructor() {
         super();
-        console.log("constructor");
         // Create squares
         /*
         let squares = Array(64).fill(empty);
@@ -153,29 +152,73 @@ class Game extends React.Component {
             stepNumber: 0,
             player: black,
             isEnd: false,
-            myColor: -1,
+            myColor: black,
         };
 
-        const reloadURL="./get_board";
-        let myColor,squares;
-        addHeader(request.get(reloadURL))
-             .end(function (err, res) {
-                 if (err) {
-                     alert(res.text);
-                 }
-                 console.dir(res);
-                 myColor=res.body["player"];
-                 squares=res.body["squares"];
-                 console.log("通信後");
-                 this.setState({myColor:myColor,squares:squares});
-                 console.log(myColor);
-             }.bind(this));
+        
         
     }
 
     // 1 <= x, y <= 8
     calcPos(x, y) {
         return ((x-1) + (y-1)*8)
+    }
+
+    componentWillMount(){
+        const reloadURL="./get_board";
+        let myColor,squares,player;
+        addHeader(request.get(reloadURL))
+             .end(function (err, res) {
+                 if (err) {
+                     alert(res.text);
+                 }
+                 console.dir(res);
+                 myColor= res.body["color"];
+                 squares= res.body["squares"];
+                 player = res.body["player"];
+                 this.setState({myColor:myColor,squares:squares,player:player});
+                 console.log("set state");
+             }.bind(this));
+
+        if(player!==myColor){
+            alert("opponent turn!");
+            //this.cpu(this.state.player,this.state.board,this);
+            this.opponent();
+        }
+
+    }
+
+    componentDidMount(){
+        if(this.state.player!==this.state.myColor){
+            console.log("check");
+            this.opponent();
+        }
+    }
+
+
+    opponent(){
+        const url = './get_board';
+        //一定間隔ごとにDBから新しい盤面を取得
+        const get_board=()=>{
+            console.log("request");
+            //DBから盤面の取得
+            addHeader(request.get(url))
+            .end(function (err, res) {
+                if (err) {
+                    alert(res.text);
+                }
+                console.dir(res);
+                if(this.state.player===res.body["player"]){
+                    clearInterval(this.ID);
+                    this.setState({squares:res.body["squares"],player:res.body["player"]});
+                }
+                //取得した盤面を更新
+                //me.tick(player, squares, res.body['history'], 0, res.body['isEnd'], me);
+                
+            }.bind(this));
+            //盤面が更新されたら（プレイヤーが自分になったら）clearInterval
+        }
+        this.ID=setInterval(()=>get_board,1000);
     }
 
     countStone(stone) {
@@ -211,10 +254,10 @@ class Game extends React.Component {
     }
 
     handleClick(i) {
-        if (this.state.player == this.state.myColor) {
+        if (this.state.player !== this.state.myColor) {
             alert("It is not your turn!");
         }
-
+        else{
         const url = './get_board';
 
         addHeader(request.post(url))
@@ -236,6 +279,7 @@ class Game extends React.Component {
                     alert('You cannot put there!!')
                 }
             }.bind(this));
+        }
     }
 
     cpu(player, squares, me) {
@@ -264,7 +308,7 @@ class Game extends React.Component {
             this.setState({
                 player : 1-this.state.myColor,
             });
-            this.cpu(white, this.state.squares, this);
+            this.cpu(1-myColor, this.state.squares, this);
         }
     }
 
@@ -276,6 +320,7 @@ class Game extends React.Component {
     }
     
     render() {
+        console.log(this.state.squares);
         let blackCount = this.countStone(black);
         let whiteCount = this.countStone(white);
         
